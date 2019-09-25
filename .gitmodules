@@ -1,0 +1,9 @@
+[submodule "lib/Console"]
+	path = lib/Console
+	url = https://github.com/blackketter/Console
+[submodule "lib/Clock"]
+	path = lib/Clock
+	url = https://github.com/blackketter/Clock
+[submodule "lib/Timezone"]
+	path = lib/Timezone
+	url = https://github.com/blackketter/Timezone
