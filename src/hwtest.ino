@@ -40,7 +40,7 @@ void loop() {
   console.idle();
 
   static time_t lastSecond = 0;
-  if (clock.getSeconds() != lastSecond) {
+  if (0 && clock.getSeconds() != lastSecond) {
     lastSecond = clock.getSeconds();
     if (lastSecond % 2) {
       digitalWrite(LED, LEDON);   // set the LED on
@@ -95,3 +95,79 @@ class InfoCommand : public Command {
 };
 
 InfoCommand theInfoCommand;
+
+class pinCommand : public Command {
+  public:
+    pinCommand() { for (uint8_t i = 0; i < maxPins; i++) { blinking[i] = 0; } }
+    const char* getName() { return "pin"; }
+    const char* getHelp() { return "<on|off|blink|read|input|pullup|awrite val|aread> <pin numbers...> - Set or read a pin"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      if (paramCount < 2) {
+        printError(c);
+      } else {
+        char* command = params[1];
+        for (uint8_t i = 2; i <= paramCount; i++) {
+          uint8_t pin = atoi(params[i]);
+          if (strcasecmp(command, "on") == 0) {
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, HIGH);
+            c->printf("  Pin: %d HIGH\n", pin);
+          } else if (strcasecmp(command, "off") == 0) {
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, LOW);
+            blink(pin, 0);
+            c->printf("  Pin: %d LOW\n", pin);
+          } else if (strcasecmp(command, "input") == 0) {
+            pinMode(pin, INPUT);
+            c->printf("  Pin: %d INPUT\n", pin);
+            blink(pin, 0);
+          } else if (strcasecmp(command, "pullup") == 0) {
+            pinMode(pin, INPUT_PULLUP);
+            c->printf("  Pin: %d INPUT_PULLUP\n", pin);
+            blink(pin, 0);
+          } else if (strcasecmp(command, "read") == 0) {
+            uint8_t val = digitalRead(pin);
+            c->printf("  Pin: %d %s\n", pin, val ? "HIGH" : "LOW");
+          } else if (strcasecmp(command, "aread") == 0) {
+            uint8_t val = analogRead(pin);
+            c->printf("  Pin: %d Analog: %d\n", pin, val);
+          } else if (strcasecmp(command, "awrite") == 0) {
+            uint8_t val = pin;
+            i++;
+            pin = atoi(params[i]);
+            analogWrite(pin, val);
+            c->printf("  Pin: %d  Analog: %d\n", pin, val);
+            blink(pin, 0);
+          } else if (strcasecmp(command, "blink") == 0) {
+            blink(pin, 1);
+            c->printf("  Pin: %d BLINKING\n", pin);
+          } else {
+            printError(c);
+          }
+        }
+      }
+    }
+
+    void idle() override {
+      if (Uptime::millis() > lastBlink + blinkInterval) {
+        lastBlink = Uptime::millis();
+        blinkState = !blinkState;
+        for (uint8_t pin = 0; pin < maxPins; pin++) {
+          if (isBlinking(pin)) {
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, blinkState ? HIGH : LOW);
+          }
+        }
+     }
+    }
+  private:
+    millis_t lastBlink = 0;
+    bool blinkState = false;
+    static const millis_t blinkInterval = 500;
+    static const uint8_t maxPins = 100;
+    uint8_t blinking[maxPins];
+    void blink(uint8_t pin, uint8_t b) { if (pin < maxPins) blinking[pin] = b; };
+    uint8_t isBlinking(uint8_t pin) {  return (pin < maxPins) ? blinking[pin] : 0;}
+};
+
+pinCommand thePinCommand;
