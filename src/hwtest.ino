@@ -8,49 +8,17 @@
 Console console;
 Clock clock;
 
-#if defined(ARDUINO_AVR_LEONARDO)
-  // leonardo pro micro has Rx LED on pin 17
-  #define LED (17)
-  #define LEDON (LOW)
-#elif defined(ARDUINO_ESP32_DEV)
-  #define LED (5)
-  #define LEDON (HIGH)
-#elif defined(ARDUINO_LOLIN32)
-  #define LED (22)
-  #define LEDON (HIGH)
-#elif defined(ESP8266_WEMOS_D1MINI)
-  #define LED (2)
-  #define LEDON (LOW)
-#else
-  // Pin 13 has an LED connected on most Arduino boards:
-  #define LED (13)
-  #define LEDON (LOW)
-#endif
-
-#define LEDOFF (!LEDON)
-
 void setup() {
-  // initialize the digital pin as an output.
-  pinMode(LED, OUTPUT);
   console.begin();
   console.debugln("hello world!");
 }
 
 void loop() {
   console.idle();
-
-  static time_t lastSecond = 0;
-  if (0 && clock.getSeconds() != lastSecond) {
-    lastSecond = clock.getSeconds();
-    if (lastSecond % 2) {
-      digitalWrite(LED, LEDON);   // set the LED on
-      console.debugln("blink on");
-    } else {
-      console.debugln("blink off");
-      digitalWrite(LED, LEDOFF);  // set the LED off
-    }
-  }
 }
+
+
+
 
 uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
     uint32_t stackTop;
@@ -71,8 +39,10 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 void printInfo(Print* p) {
   char string[100];
   clock.longTime(string);
-
   p->printf("Time: %s\n", string);
+  clock.longDate(string);
+  p->printf("Date: %s\n", string);
+
   p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
   p->printf("Uptime: %f\n", Uptime::micros()/1000000.0);
@@ -81,7 +51,6 @@ void printInfo(Print* p) {
   uint32_t clockMillis = clock.fracMillis();
 
   p->printf("RTC millis:%03d, clock: %03d, diff: %d\n", (uint32_t)rtcMillis, (uint32_t)clockMillis, (int)rtcMillis - (int)clockMillis);
-
 }
 
 
@@ -163,11 +132,41 @@ class pinCommand : public Command {
   private:
     millis_t lastBlink = 0;
     bool blinkState = false;
-    static const millis_t blinkInterval = 500;
-    static const uint8_t maxPins = 100;
+    static const millis_t blinkInterval = 250;
+    static const uint8_t maxPins = NUM_DIGITAL_PINS;
     uint8_t blinking[maxPins];
     void blink(uint8_t pin, uint8_t b) { if (pin < maxPins) blinking[pin] = b; };
     uint8_t isBlinking(uint8_t pin) {  return (pin < maxPins) ? blinking[pin] : 0;}
 };
 
 pinCommand thePinCommand;
+
+class DateCommand : public Command {
+  public:
+    const char* getName() { return "date"; }
+    const char* getHelp() { return "<year> <month> <day> <hour> <minute> <second> - Print or Set Date"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      int p = paramCount;
+      uint16_t year = 0;
+      uint8_t month = 1;
+      uint8_t day = 1;
+      uint8_t hour = 0;
+      uint8_t minute = 0;
+      uint8_t second = 0;
+      if (p>0) { year = atoi(params[1]); }
+      if (p>1) { month = atoi(params[2]); }
+      if (p>2) { day = atoi(params[3]); }
+      if (p>3) { hour = atoi(params[4]); }
+      if (p>4) { minute = atoi(params[5]); }
+      if (p>5) { second = atoi(params[6]); }
+      if (year && month && day) {
+        clock.setDateTime(year,month,day,hour,minute,second);
+      }
+      clock.longDate(*c);
+      c->print(" ");
+      clock.longTime(*c);
+      c->println();
+    }
+};
+
+DateCommand theDateCommand;
