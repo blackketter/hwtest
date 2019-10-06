@@ -2,6 +2,10 @@
 
 An Arduino sketch for testing new hardware.  
 
-Uses my [Console](https://github.com/blackketter/Console) library.
+Uses libraries:
 
-First up, Teensy 4.0 and Teensy 3.2.
+- [Clock](https://github.com/blackketter/Clock)
+- [Console](https://github.com/blackketter/Console)
+- [Timezone](https://github.com/blackketter/Timezone)
+
+First up, Teensy 4.0, 3.7 and 3.2.
