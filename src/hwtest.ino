@@ -2,8 +2,8 @@
   hwtest - Hardware Test
  */
 
-#include "Console.h"
 #include "Clock.h"
+#include "Console.h"
 
 #include "USBHostCommand.h"
 
@@ -24,18 +24,9 @@ void setup() {
 #endif
 
   console.println("Setup done");
-
-  Serial6.begin(115200);
-
 }
 
 void loop() {
   console.idle();
-
-  if (Serial6.available() > 0) {
-    uint8_t incomingByte = Serial6.read();
-    console.print((char)incomingByte);
-	}
 }
-
 
