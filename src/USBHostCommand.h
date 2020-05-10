@@ -89,7 +89,7 @@ class USBHostCommand : public Command {
       midi1.setHandleControlChange(OnControlChange);
     }
 
-    void idle(Stream* c) override {
+    void idle(Console* c) override {
       usbHost.Task();
       midi1.read();
 
@@ -111,7 +111,7 @@ class USBHostCommand : public Command {
       }
     }
 
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
 
       if (!_output) {
         _output = c;

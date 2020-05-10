@@ -1,15 +1,21 @@
 #!/bin/bash
 
-echo "debug 0\resp\r" > $1
+echo -e "prompt 0\rdebug 0\resp\r" > $1
+sleep 1
+
+#  --trace \
 
 esptool.py \
  --chip esp32 \
  --port $1 \
  --before default_reset \
- --after hard_reset write_flash -z --flash_mode dio --flash_freq 40m \
- --flash_size detect 0x1000 \
- /Users/dean/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin 0x8000 \
- /Users/dean/src/Console/examples/minimal/.pio/build/esp32/partitions.bin 0xe000 \
- /Users/dean/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin 0x10000 \
- firmware.bin
-
+ --after hard_reset \
+ write_flash \
+ -z \
+ --flash_mode dio \
+ --flash_freq 40m \
+ --flash_size detect \
+ 0x1000 /Users/dean/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin \
+ 0x8000 /Users/dean/src/Console/examples/minimal/.pio/build/esp32/partitions.bin \
+ 0xe000 /Users/dean/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+ 0x10000 firmware.bin
