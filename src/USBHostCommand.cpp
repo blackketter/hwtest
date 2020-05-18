@@ -1,6 +1,5 @@
-#ifndef _USBHostCommand_
-
 #if defined(__MK66FX1M0__) || defined(__IMXRT1052__) || defined(__IMXRT1062__)
+#include "Console.h"
 
 #if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #if !defined(USB_ENABLE_PIN)
@@ -125,5 +124,4 @@ class USBHostCommand : public Command {
 
 USBHostCommand theUSBHostCommand;
 
-#endif
 #endif
